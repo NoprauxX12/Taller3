@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 
 from .models import Movie
+from .management.commands.check_rec_sys import Command
 
 import matplotlib.pyplot as plt
 import matplotlib
@@ -123,3 +124,21 @@ def generate_bar_chart(data, xlabel, ylabel):
     buffer.close()
     graphic = base64.b64encode(image_png).decode('utf-8')
     return graphic
+
+
+def recommendations_sys(consulta):
+    resultado = Command.handle(consulta)
+
+    return resultado
+
+def recommendation_view(request):
+
+    recommendationReq = request.GET.get('recomendationReq')
+
+    if recommendationReq:
+        recommendation = recommendations_sys(recommendationReq)
+        movies = Movie.objects.filter(title__icontains=recommendation.title)
+
+    else:
+        movies = Movie.objects.all()
+    return render(request, 'recomendations.html', {'recommendationReq':recommendationReq, 'movies':movies})
